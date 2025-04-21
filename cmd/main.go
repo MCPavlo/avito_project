@@ -39,14 +39,25 @@ func main() {
 
 	http.HandleFunc("/register", authHandler.Register)
 	http.HandleFunc("/login", authHandler.Login)
-	http.HandleFunc("/pvz/create", pvzHandler.Create)
-	http.HandleFunc("/receptions/create", receptionHandler.Create)
+	http.HandleFunc("/receptions", receptionHandler.Create)
+
 	http.HandleFunc("/pvz/{pvzId}/close_last_reception", receptionHandler.Close)
 	http.HandleFunc("/products", goodsHandler.Add)
 	http.HandleFunc("/pvz/{pvzId}/delete_last_product", goodsHandler.DeleteLast)
-	http.HandleFunc("/pvz", pvzHandler.GetPVZs)
-	http.HandleFunc("/receptions", receptionHandler.GetReceptions)
+
+	//http.HandleFunc("/receptions", receptionHandler.GetReceptions)
 	http.HandleFunc("/dummyLogin", dummyLoginHandler.Login)
+
+	http.HandleFunc("/pvz", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			pvzHandler.Create(w, r)
+		case http.MethodGet:
+			pvzHandler.GetPVZs(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
 	fmt.Printf("Server is starting on port %s...\n", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(cfg.Server.Port, nil))
